@@ -37,10 +37,11 @@ jobs:
 
     # Step 6: Deploy to IIS — copy published files to the IIS folder
     - name: Deploy to IIS folder
+      shell: powershell  # Use Windows PowerShell (comes with Windows)
       run: |
         # Set the path to your IIS website folder
         $iisPath = "C:\inetpub\GithubLocalHost"
-
+        
         # If the folder exists, clear it before copying new files
         if (Test-Path $iisPath) {
           Remove-Item "$iisPath\*" -Recurse -Force
@@ -52,4 +53,3 @@ jobs:
 
         # Copy the published output to the IIS site folder
         Copy-Item -Path "./publish/*" -Destination $iisPath -Recurse -Force
-        shell: powershell  # Tells GitHub to run this as PowerShell script (not regular shell)
