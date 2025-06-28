@@ -40,6 +40,12 @@ jobs:
       run: |
         Import-Module WebAdministration
         Stop-WebAppPool -Name "GithubLocalHost"
+        
+    - name: Stop IIS Site
+      shell: powershell
+      run: |
+        Import-Module WebAdministration
+        Stop-Website -Name "GithubLocalHost"
     
     # Step 7: Deploy to IIS — copy published files to the IIS folder
     - name: Deploy to IIS folder
@@ -65,4 +71,10 @@ jobs:
       run: |
         Import-Module WebAdministration
         Start-WebAppPool -Name "GithubLocalHost"
+        
+    - name: Start IIS Site
+      shell: powershell
+      run: |
+        Import-Module WebAdministration
+        Start-Website -Name "GithubLocalHost"
         
