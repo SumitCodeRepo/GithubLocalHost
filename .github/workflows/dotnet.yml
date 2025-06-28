@@ -1,0 +1,29 @@
+# Name of the workflow (this appears in GitHub Actions tab)
+name: Build ASP.NET MVC App (.NET 9)
+
+# When to run the workflow
+on:
+  push:            # Run when you push code
+    branches: [ main ]    # Only if you push to the 'main' branch
+  pull_request:    # Also run when someone creates a pull request
+    branches: [ main ]    # Targeting the 'main' branch
+
+# Define the list of jobs (you can have multiple jobs if needed)
+jobs:
+  build:           # This is the name of our job
+    runs-on: windows-latest   # Run on a Windows virtual machine
+
+    steps:         # Each step is a task the job will perform
+    - name: Checkout code        # Step 1: Download your repo's code
+      uses: actions/checkout@v4  # Uses the 'checkout' GitHub Action
+
+    - name: Setup .NET 9 SDK     # Step 2: Install .NET 9 SDK on the runner
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'  # Version to install (you can use '8.0.x' for .NET 8 etc.)
+
+    - name: Restore dependencies        # Step 3: Restore NuGet packages
+      run: dotnet restore               # Runs the command on the runner
+
+    - name: Build project               # Step 4: Build the project in Release mode
+      run: dotnet build --no-restore --configuration Release
