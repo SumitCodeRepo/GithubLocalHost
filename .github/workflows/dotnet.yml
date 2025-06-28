@@ -1,29 +1,55 @@
-# Name of the workflow (this appears in GitHub Actions tab)
-name: Build ASP.NET MVC App (.NET 9)
+# The name of the workflow — appears in GitHub's Actions tab
+name: Build & Deploy ASP.NET MVC (.NET 9)
 
-# When to run the workflow
+# Triggers the workflow on every push to the 'main' branch
 on:
-  push:            # Run when you push code
-    branches: [ main ]    # Only if you push to the 'main' branch
-  pull_request:    # Also run when someone creates a pull request
-    branches: [ main ]    # Targeting the 'main' branch
+  push:
+    branches: [ main ]  # You can change this if your default branch has a different name
 
-# Define the list of jobs (you can have multiple jobs if needed)
 jobs:
-  build:           # This is the name of our job
-    runs-on: windows-latest   # Run on a Windows virtual machine
+  build-and-deploy:  # Job name — you can name it anything you like
 
-    steps:         # Each step is a task the job will perform
-    - name: Checkout code        # Step 1: Download your repo's code
-      uses: actions/checkout@v4  # Uses the 'checkout' GitHub Action
+    # Tells GitHub to use your self-hosted runner (Sumit-DEV)    
+    runs-on: [self-hosted, sumit-dev]
 
-    - name: Setup .NET 9 SDK     # Step 2: Install .NET 9 SDK on the runner
-      uses: actions/setup-dotnet@v4
+    steps:
+    # Step 1: Checkout your source code from the GitHub repository
+    - name: Checkout code
+      uses: actions/checkout@v4  # GitHub Action to pull your code into the runner
+
+    # Step 2: Install .NET 9 SDK on your runner
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4  # This action installs the specified .NET SDK
       with:
-        dotnet-version: '9.0.x'  # Version to install (you can use '8.0.x' for .NET 8 etc.)
+        dotnet-version: '9.0.x'  # Installs the latest patch version of .NET 9
 
-    - name: Restore dependencies        # Step 3: Restore NuGet packages
-      run: dotnet restore               # Runs the command on the runner
+    # Step 3: Restore NuGet packages (dependencies)
+    - name: Restore dependencies
+      run: dotnet restore  # Equivalent to running in terminal: dotnet restore
 
-    - name: Build project               # Step 4: Build the project in Release mode
-      run: dotnet build --no-restore --configuration Release
+    # Step 4: Build the application (in Release mode)
+    - name: Build project
+      run: dotnet build --no-restore --configuration Release  # --no-restore skips restore (already done)
+
+    # Step 5: Publish the app (creates the web-ready output)
+    - name: Publish project
+      run: dotnet publish -c Release -o ./publish  # Output files go into ./publish directory
+
+    # Step 6: Deploy to IIS — copy published files to the IIS folder
+    - name: Deploy to IIS folder
+      run: |
+        # Set the path to your IIS website folder
+        $iisPath = "C:\inetpub\GithubLocalHost"
+
+        # If the folder exists, clear it before copying new files
+        if (Test-Path $iisPath) {
+          Remove-Item "$iisPath\*" -Recurse -Force
+        }
+        else {
+          # If it doesn't exist, create it
+          New-Item -Path $iisPath -ItemType Directory
+        }
+
+        # Copy the published output to the IIS site folder
+        Copy-Item -Path "./publish/*" -Destination $iisPath -Recurse -Force
+      shell: pwsh  # Tells GitHub to run this as PowerShell script (not regular shell)
