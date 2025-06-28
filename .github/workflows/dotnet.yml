@@ -52,4 +52,4 @@ jobs:
 
         # Copy the published output to the IIS site folder
         Copy-Item -Path "./publish/*" -Destination $iisPath -Recurse -Force
-      shell: pwsh  # Tells GitHub to run this as PowerShell script (not regular shell)
+        shell: powershell  # Tells GitHub to run this as PowerShell script (not regular shell)
